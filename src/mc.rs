@@ -335,6 +335,14 @@ pub async fn download_resourcepack() {
         .join("resourcepacks")
         .join("OVP.zip");
 
+    // Ensure the resourcepacks directory exists
+    if let Some(parent_dir) = resourcepack_path.parent() {
+        if let Err(e) = fs::create_dir_all(parent_dir) {
+            eprintln!("Failed to create resourcepacks directory: {}", e);
+            return;
+        }
+    }
+
     match reqwest::get("https://github.com/OpenVoxelStudios/OVP/releases/download/latest/OVP.zip")
         .await
     {

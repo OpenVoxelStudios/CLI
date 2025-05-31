@@ -26,7 +26,7 @@ pub fn get_java_path(_version: &String) -> String {
     // Auto-detect and cache the path
     let java_path = match check_java_version() {
         Ok(version) => {
-            if version > 21 {
+            if version >= 21 {
                 match get_java_executable_path() {
                     Ok(path) => path,
                     Err(e) => {
