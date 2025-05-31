@@ -4,6 +4,7 @@ use reqwest::Url;
 use std::path::Path;
 
 mod auth;
+mod java;
 use auth::{Accounts, add_account, fetch_file, switch_account};
 mod cmd;
 mod dir;
@@ -55,7 +56,8 @@ enum Commands {
     Whoami {},
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() > 1 && (args[1] == "--version" || args[1] == "-V") {
@@ -142,14 +144,14 @@ fn main() {
 
         Commands::Play { game } => match select_map(game.join(" ").to_lowercase()) {
             Some(map) => {
-                run_map(map);
+                run_map(map).await;
             }
             None => {}
         },
 
         Commands::Run { version, ip } => {
             println!("Launching Minecraft {}...\n", version);
-            launch(version.clone(), None, ip.as_ref());
+            launch(version.clone(), None, ip.as_ref()).await;
         }
 
         Commands::Open { path } => {
@@ -256,7 +258,7 @@ fn main() {
                 Some(&map_version),
             );
 
-            launch(version.clone(), Some(&map_path), None);
+            launch(version.clone(), Some(&map_path), None).await;
         }
 
         Commands::Search {} => {
@@ -271,7 +273,7 @@ fn main() {
 
             match map {
                 Some(map) => {
-                    run_map(map);
+                    run_map(map).await;
                 }
                 None => println!("No map selected."),
             }

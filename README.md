@@ -102,9 +102,11 @@ ovl run 1.21.5
 ovl run 1.20.1 mc.hypixel.net
 ```
 
-## Requirements
+## Licenses
 
-- An installed Java version at /usr/bin/java (Java management is WIP)
+This code is available under the [MIT License](./LICENSE.md)
+
+Uses the [Open Launcher](https://github.com/Natoune/open_launcher_rs) code available under the [MIT License](https://github.com/Natoune/open_launcher_rs/blob/main/LICENSE.md)
 
 ## Support
 

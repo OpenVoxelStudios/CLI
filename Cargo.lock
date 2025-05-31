@@ -532,7 +532,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1906,8 +1906,7 @@ dependencies = [
 [[package]]
 name = "open_launcher"
 version = "1.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f59329893ed0b3f133c1504eb415cc83007e3e529158babfbf2088a6b256f0d"
+source = "git+https://github.com/KodeurKubik/open_launcher_rs#185cd5613a0a6d6532184e563a7efb6acc55de61"
 dependencies = [
  "async-process",
  "async-recursion",
@@ -1967,8 +1966,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ovl"
-version = "0.1.0"
+name = "openvoxellauncher"
+version = "0.1.1"
 dependencies = [
  "arboard",
  "clap",

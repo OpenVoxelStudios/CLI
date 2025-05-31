@@ -5,13 +5,14 @@ use reqwest;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::{BufReader, Read, Seek, SeekFrom, Write, stdout};
+use std::io::{BufReader, Cursor, Read, Seek, SeekFrom, Write, stdout};
 use std::path::{Path, PathBuf};
 
 use crate::auth::get_auth;
 use crate::dir::get_minecraft_support_dir;
-use crate::filesys::used_version_save;
+use crate::filesys::{getsha256, used_version_save};
 use crate::get_app_support_dir;
+use crate::java::get_java_path;
 use crate::map::{Map, install_map};
 use crate::mods::download_mods;
 
@@ -216,7 +217,6 @@ fn compare_versions(v1: &str, v2: &str) -> std::cmp::Ordering {
     std::cmp::Ordering::Equal
 }
 
-#[tokio::main]
 pub async fn launch(
     version: String,
     quick_play_map: Option<&String>,
@@ -231,9 +231,13 @@ pub async fn launch(
         .and_then(|versions| versions.first().map(|v| v.loader.version.clone()));
 
     println!("Using Fabric version: {}", fabric_version.clone().unwrap());
+    let java_path = get_java_path(&version);
+    println!("Using Java path: {}", java_path);
+
+    println!("");
     let mut launcher = Launcher::new(
         home.join(".minecraft").to_str().unwrap(),
-        "/usr/bin/java",
+        &java_path,
         version::Version {
             minecraft_version: version.clone(),
             loader: Some("fabric".to_string()),
@@ -244,6 +248,7 @@ pub async fn launch(
 
     used_version_save(version);
 
+    launcher.silence(true);
     launcher.auth(get_auth());
     launcher.custom_resolution(1280, 720);
     // launcher.fullscreen(true);
@@ -309,7 +314,7 @@ pub async fn launch(
         }
     }
 
-    let mut process = match launcher.launch() {
+    let process = match launcher.launch() {
         Ok(p) => p,
         Err(e) => {
             println!("An error occurred while launching the game: {}", e);
@@ -317,10 +322,29 @@ pub async fn launch(
         }
     };
 
-    // TODO: background process
-    let _ = process.wait();
+    println!(
+        "\nMinecraft launched successfully! Process ID: {}",
+        process.id()
+    );
+}
 
-    println!("Game closed.");
+pub async fn download_resourcepack() {
+    let resourcepack_path = get_app_support_dir()
+        .unwrap()
+        .join(".minecraft")
+        .join("resourcepacks")
+        .join("OVP.zip");
+
+    match reqwest::get("https://github.com/OpenVoxelStudios/OVP/releases/download/latest/OVP.zip")
+        .await
+    {
+        Ok(response) => {
+            let mut file = File::create(&resourcepack_path).unwrap();
+            let mut content = Cursor::new(response.bytes().await.unwrap());
+            std::io::copy(&mut content, &mut file).unwrap();
+        }
+        Err(e) => eprintln!("Failed to download resource pack: {}", e),
+    }
 }
 
 pub async fn init_minecraft(version: &String) {
@@ -337,6 +361,54 @@ pub async fn init_minecraft(version: &String) {
         } else {
             println!("Copied options.txt to new location.");
         }
+    }
+
+    let resourcepack_path = get_app_support_dir()
+        .unwrap()
+        .join(".minecraft")
+        .join("resourcepacks")
+        .join("OVP.zip");
+
+    let resourcepack_shouldsha256 = match reqwest::get(
+        "https://github.com/OpenVoxelStudios/OVP/releases/download/latest/OVP.zip.sha256",
+    )
+    .await
+    {
+        Ok(response) => match response.error_for_status() {
+            Ok(resp) => match resp.text().await {
+                Ok(text) => text,
+                Err(e) => {
+                    eprintln!("Failed to read response text: {}", e);
+                    return;
+                }
+            },
+            Err(e) => {
+                eprintln!("HTTP error: {}", e);
+                return;
+            }
+        },
+        Err(e) => {
+            eprintln!("Failed to fetch resourcepack SHA256: {}", e);
+            return;
+        }
+    };
+
+    if resourcepack_path.exists() {
+        let resourcepack_issha256 = match getsha256(&resourcepack_path) {
+            Ok(sha) => sha,
+            Err(e) => {
+                eprintln!("Failed to get SHA256: {}", e);
+                return;
+            }
+        };
+
+        if resourcepack_issha256.trim() != resourcepack_shouldsha256.trim() {
+            println!("Resource pack SHA256 mismatch, downloading...");
+            download_resourcepack().await;
+        }
+    } else {
+        println!("Resource pack not found, downloading...");
+        download_resourcepack().await;
     }
 
     if let Ok(mut options_file) = File::options().read(true).write(true).open(&options_new) {
@@ -434,7 +506,7 @@ pub fn get_version_name(level_dat: &Path) -> String {
     "none".to_string()
 }
 
-pub fn run_map(map: Map) {
+pub async fn run_map(map: Map) {
     let map_path = match install_map(map.id.clone()) {
         Ok(value) => value,
         Err(e) => {
@@ -444,5 +516,5 @@ pub fn run_map(map: Map) {
     };
 
     println!("Launching Minecraft {}...\n", map.version);
-    launch(map.version.clone(), Some(&map_path), None);
+    launch(map.version.clone(), Some(&map_path), None).await;
 }

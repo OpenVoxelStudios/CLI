@@ -1,6 +1,6 @@
 [package]
-name = "ovl"
-version = "0.1.0"
+name = "openvoxellauncher"
+version = "0.1.1"
 edition = "2024"
 description = "The OpenVoxel Launcher directly in your terminal!"
 license = "MIT"
@@ -22,7 +22,7 @@ reqwest = { version = "0.12.8", features = ["blocking", "json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 crossterm = "0.27"
-open_launcher = "1.5.5"
+open_launcher = { git = "https://github.com/KodeurKubik/open_launcher_rs" }
 tokio = { version = "1.45.1", features = ["full"] }
 dirs = "4.0"
 zip = "0.6"
