@@ -98,7 +98,7 @@ pub fn switch_account() {
 }
 
 pub fn add_account() -> Account {
-    let offline = ask_no_yes("Is this account offline?");
+    let offline = ask_no_yes("Is the new account offline?");
 
     let account: Account;
 

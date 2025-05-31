@@ -1967,7 +1967,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "openvoxellauncher"
+name = "ovl"
 version = "0.1.0"
 dependencies = [
  "arboard",
