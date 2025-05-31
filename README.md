@@ -2,6 +2,8 @@
 
 The OpenVoxel Launcher directly in your terminal! A command-line interface for managing Minecraft accounts, downloading maps, and launching Minecraft with OpenVoxel Studios content.
 
+> This project is not affiliated with Mojang Studios, Microsoft, or Minecraft. Minecraft is a trademark of Mojang Studios. All rights to the game and its assets belong to their respective owners.
+
 ## Features
 
 - 🔐 **Secure Authentication:** Uses system keychain to store Minecraft access tokens
