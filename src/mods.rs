@@ -105,6 +105,14 @@ pub async fn download_mods(version: &str) -> Result<(), Box<dyn std::error::Erro
         return Ok(());
     }
 
+    // Ensure the mods directory exists
+    let _ = std::fs::create_dir_all(
+        get_app_support_dir()
+            .unwrap()
+            .join(".minecraft")
+            .join("mods"),
+    );
+
     for mod_name in MODS {
         let file_path = get_app_support_dir()
             .unwrap()

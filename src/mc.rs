@@ -228,7 +228,11 @@ pub async fn launch(
     let fabric_version = fetch_fabric(version.clone())
         .await
         .ok()
-        .and_then(|versions| versions.first().map(|v| v.loader.version.clone()));
+        .and_then(|versions| versions.first().map(|v| v.loader.version.clone()))
+        .or_else(|| {
+            println!("Failed to fetch Fabric version, falling back to 0.16.14");
+            Some("0.16.14".to_string())
+        });
 
     println!("Using Fabric version: {}", fabric_version.clone().unwrap());
     let java_path = get_java_path(&version);
